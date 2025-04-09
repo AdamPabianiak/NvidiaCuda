@@ -40,7 +40,7 @@ NVIDIA Nsight Systems version 2025.1.1.131-251135540420v0
 
 ### Running examples
 
-- open terminal (Bash/Powershell)
+- open terminal (Bash/x64 Native Tools Command Prompt for VS 2022)
 - go to the proper directory, e.g. `cd examples/1-gpu-hello-world`
 - compile and run code with nvcc, e.g. `nvcc -o hello.bin hello-world-gpu.cu -run`
-- profile application if needed, e.g. `nsys profile --stats=true -o hello-report ./hello.bin`
+- profile application if needed, e.g. `nsys profile --stats=true -o hello-report ./hello.bin` (in case of issues on Windows please set the path to nsys in the command line)
