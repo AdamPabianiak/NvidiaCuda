@@ -2,6 +2,25 @@
 
 This lab guide will walk you through a series of exercises designed to help you understand the fundamentals of CUDA C++ programming. By modifying and experimenting with the provided code examples, you'll gain hands-on experience with GPU programming concepts.
 
+- [Exercise 1: Hello World from the GPU](#exercise-1-hello-world-from-the-gpu)
+- [Exercise 2: Understanding Thread and Block Indices](#exercise-2-understanding-thread-and-block-indices)
+- [Exercise 3: Single Block Loop Parallelization](#exercise-3-single-block-loop-parallelization)
+- [Exercise 4: Multi-Block Loop Parallelization](#exercise-4-multi-block-loop-parallelization)
+- [Exercise 5: Error Handling in CUDA](#exercise-5-error-handling-in-cuda)
+- [Exercise 6: Optimizing with Grid-Stride Loops](#exercise-6-optimizing-with-grid-stride-loops)
+- [Exercise 7: Memory Prefetching and Initialization](#exercise-7-memory-prefetching-and-initialization)
+- [Exercise 8: Thread Configuration and Performance Analysis](#exercise-8-thread-configuration-and-performance-analysis)
+- [Exercise 9: CPU vs GPU Performance Comparison](#exercise-9-cpu-vs-gpu-performance-comparison)
+- [Exercise 10: Memory Optimization with Prefetching](#exercise-10-memory-optimization-with-prefetching)
+- [Exercise 11: GPU Initialization and Error Handling](#exercise-11-gpu-initialization-and-error-handling)
+- [Exercise 12: Matrix Multiplication Optimization](#exercise-12-matrix-multiplication-optimization)
+- [Exercise 13: CPU vs GPU Initialization](#exercise-13-cpu-vs-gpu-initialization)
+- [Exercise 14: Understanding CUDA Streams Basics](#exercise-14-understanding-cuda-streams-basics)
+- [Exercise 15: Stream-Based Initialization](#exercise-15-stream-based-initialization)
+- [Exercise 16: Stream-Sliced Vector Addition](#exercise-16-stream-sliced-vector-addition)
+- [Exercise 17: Advanced Stream Synchronization](#exercise-17-advanced-stream-synchronization)
+- [Exercise 18: Multi-Stage Pipeline with Streams](#exercise-18-multi-stage-pipeline-with-streams)
+
 ## Exercise 1: Hello World from the GPU
 
 **File: [hello-world-gpu.cu](examples/1-gpu-hello-world/hello-world-gpu.cu)**
