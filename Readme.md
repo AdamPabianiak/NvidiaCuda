@@ -6,10 +6,18 @@
 - [CUDA Installation Guide for Microsoft Windows](https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/)
 - [NVIDIA Nsight Systems](https://developer.nvidia.com/nsight-systems/get-started)
 
+## Supporting Materials
 
-## Examples
+- [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/)
+- [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/contents.html)
+- [CUDA Streams Best Practices](https://developer.nvidia.com/blog/gpu-pro-tip-cuda-7-streams-simplify-concurrency/)
+- [CUDA Runtime API Documentation](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html)
 
-### The examples were tested on the following environment
+## Laboratory exercises - [Exercises.md](Exercises.md)
+
+### Examples
+
+#### The examples were tested on the following environment
 - Ubuntu 24.04.2 LTS
 - `nvidia-smi` output
 ```
@@ -38,9 +46,36 @@ Build cuda_12.0.r12.0/compiler.32267302_0
 NVIDIA Nsight Systems version 2025.1.1.131-251135540420v0
 ```
 
-### Running examples
+#### Running examples
 
 - open terminal (Bash/x64 Native Tools Command Prompt for VS 2022)
 - go to the proper directory, e.g. `cd examples/1-gpu-hello-world`
 - compile and run code with nvcc, e.g. `nvcc -o hello.bin hello-world-gpu.cu -run`
 - profile application if needed, e.g. `nsys profile --stats=true -o hello-report ./hello.bin` (in case of issues on Windows please set the path to nsys in the command line)
+
+
+## Tips for CUDA Optimization
+
+Throughout these exercises, keep these optimization principles in mind:
+
+1. **Memory optimization:**
+   - Minimize host-device transfers
+   - Use prefetching with Unified Memory
+   - Ensure coalesced memory access
+   - Use shared memory for frequently accessed data
+
+2. **Execution configuration:**
+   - Choose thread block size as a multiple of 32 (warp size)
+   - Launch enough blocks to keep all SMs busy
+   - Avoid thread divergence within warps
+
+3. **Workload distribution:**
+   - Use grid-stride loops for large datasets
+   - Balance work evenly across threads
+   - Avoid serial sections in parallel code
+
+4. **Profiling-driven optimization:**
+   - Use Nsight Systems or other profiling tools
+   - Identify bottlenecks before optimizing
+   - Make one change at a time and measure impact
+   - Document all performance changes
