@@ -15,6 +15,33 @@
 
 ## Laboratory exercises - [Exercises.md](Exercises.md)
 
+
+### Tips for CUDA Optimization
+
+Throughout these exercises, keep these optimization principles in mind:
+
+1. **Memory optimization:**
+   - Minimize host-device transfers
+   - Use prefetching with Unified Memory
+   - Ensure coalesced memory access
+   - Use shared memory for frequently accessed data
+
+2. **Execution configuration:**
+   - Choose thread block size as a multiple of 32 (warp size)
+   - Launch enough blocks to keep all SMs busy
+   - Avoid thread divergence within warps
+
+3. **Workload distribution:**
+   - Use grid-stride loops for large datasets
+   - Balance work evenly across threads
+   - Avoid serial sections in parallel code
+
+4. **Profiling-driven optimization:**
+   - Use Nsight Systems or other profiling tools
+   - Identify bottlenecks before optimizing
+   - Make one change at a time and measure impact
+   - Document all performance changes
+
 ### Examples
 
 #### The examples were tested on the following environment
@@ -52,30 +79,3 @@ NVIDIA Nsight Systems version 2025.1.1.131-251135540420v0
 - go to the proper directory, e.g. `cd examples/1-gpu-hello-world`
 - compile and run code with nvcc, e.g. `nvcc -o hello.bin hello-world-gpu.cu -run`
 - profile application if needed, e.g. `nsys profile --stats=true -o hello-report ./hello.bin` (in case of issues on Windows please set the path to nsys in the command line)
-
-
-## Tips for CUDA Optimization
-
-Throughout these exercises, keep these optimization principles in mind:
-
-1. **Memory optimization:**
-   - Minimize host-device transfers
-   - Use prefetching with Unified Memory
-   - Ensure coalesced memory access
-   - Use shared memory for frequently accessed data
-
-2. **Execution configuration:**
-   - Choose thread block size as a multiple of 32 (warp size)
-   - Launch enough blocks to keep all SMs busy
-   - Avoid thread divergence within warps
-
-3. **Workload distribution:**
-   - Use grid-stride loops for large datasets
-   - Balance work evenly across threads
-   - Avoid serial sections in parallel code
-
-4. **Profiling-driven optimization:**
-   - Use Nsight Systems or other profiling tools
-   - Identify bottlenecks before optimizing
-   - Make one change at a time and measure impact
-   - Document all performance changes
