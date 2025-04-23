@@ -2,24 +2,65 @@
 
 This lab guide will walk you through a series of exercises designed to help you understand the fundamentals of CUDA C++ programming. By modifying and experimenting with the provided code examples, you'll gain hands-on experience with GPU programming concepts.
 
-- [Exercise 1: Hello World from the GPU](#exercise-1-hello-world-from-the-gpu)
-- [Exercise 2: Understanding Thread and Block Indices](#exercise-2-understanding-thread-and-block-indices)
-- [Exercise 3: Single Block Loop Parallelization](#exercise-3-single-block-loop-parallelization)
-- [Exercise 4: Multi-Block Loop Parallelization](#exercise-4-multi-block-loop-parallelization)
-- [Exercise 5: Error Handling in CUDA](#exercise-5-error-handling-in-cuda)
-- [Exercise 6: Optimizing with Grid-Stride Loops](#exercise-6-optimizing-with-grid-stride-loops)
-- [Exercise 7: Memory Prefetching and Initialization](#exercise-7-memory-prefetching-and-initialization)
-- [Exercise 8: Thread Configuration and Performance Analysis](#exercise-8-thread-configuration-and-performance-analysis)
-- [Exercise 9: CPU vs GPU Performance Comparison](#exercise-9-cpu-vs-gpu-performance-comparison)
-- [Exercise 10: Memory Optimization with Prefetching](#exercise-10-memory-optimization-with-prefetching)
-- [Exercise 11: GPU Initialization and Error Handling](#exercise-11-gpu-initialization-and-error-handling)
-- [Exercise 12: Matrix Multiplication Optimization](#exercise-12-matrix-multiplication-optimization)
-- [Exercise 13: CPU vs GPU Initialization](#exercise-13-cpu-vs-gpu-initialization)
-- [Exercise 14: Understanding CUDA Streams Basics](#exercise-14-understanding-cuda-streams-basics)
-- [Exercise 15: Stream-Based Initialization](#exercise-15-stream-based-initialization)
-- [Exercise 16: Stream-Sliced Vector Addition](#exercise-16-stream-sliced-vector-addition)
-- [Exercise 17: Advanced Stream Synchronization](#exercise-17-advanced-stream-synchronization)
-- [Exercise 18: Multi-Stage Pipeline with Streams](#exercise-18-multi-stage-pipeline-with-streams)
+- [CUDA C++ Programming: Hands-on Lab Guide](#cuda-c-programming-hands-on-lab-guide)
+  - [Exercise 1: Hello World from the GPU](#exercise-1-hello-world-from-the-gpu)
+    - [Tasks:](#tasks)
+  - [Exercise 2: Understanding Thread and Block Indices](#exercise-2-understanding-thread-and-block-indices)
+    - [Tasks:](#tasks-1)
+  - [Exercise 3: Single Block Loop Parallelization](#exercise-3-single-block-loop-parallelization)
+    - [Tasks:](#tasks-2)
+  - [Exercise 4: Multi-Block Loop Parallelization](#exercise-4-multi-block-loop-parallelization)
+    - [Tasks:](#tasks-3)
+  - [Exercise 5: Error Handling in CUDA](#exercise-5-error-handling-in-cuda)
+    - [Tasks:](#tasks-4)
+  - [Exercise 6: Optimizing with Grid-Stride Loops](#exercise-6-optimizing-with-grid-stride-loops)
+    - [Tasks:](#tasks-5)
+    - [Questions:](#questions)
+  - [Exercise 7: Memory Prefetching and Initialization](#exercise-7-memory-prefetching-and-initialization)
+    - [Tasks:](#tasks-6)
+    - [Questions:](#questions-1)
+  - [Exercise 8: Thread Configuration and Performance Analysis](#exercise-8-thread-configuration-and-performance-analysis)
+    - [Tasks:](#tasks-7)
+    - [Questions:](#questions-2)
+  - [Exercise 9: CPU vs GPU Performance Comparison](#exercise-9-cpu-vs-gpu-performance-comparison)
+    - [Tasks:](#tasks-8)
+    - [Questions:](#questions-3)
+  - [Exercise 10: Memory Optimization with Prefetching](#exercise-10-memory-optimization-with-prefetching)
+    - [Tasks:](#tasks-9)
+    - [Questions:](#questions-4)
+  - [Exercise 11: GPU Initialization and Error Handling](#exercise-11-gpu-initialization-and-error-handling)
+    - [Tasks:](#tasks-10)
+    - [Questions:](#questions-5)
+  - [Exercise 12: Matrix Multiplication Optimization](#exercise-12-matrix-multiplication-optimization)
+    - [Tasks:](#tasks-11)
+    - [Questions:](#questions-6)
+  - [Exercise 13: CPU vs GPU Initialization](#exercise-13-cpu-vs-gpu-initialization)
+    - [Tasks:](#tasks-12)
+    - [Questions:](#questions-7)
+  - [Exercise 14: Understanding CUDA Streams Basics](#exercise-14-understanding-cuda-streams-basics)
+    - [Tasks:](#tasks-13)
+    - [Questions:](#questions-8)
+  - [Exercise 15: Stream-Based Initialization](#exercise-15-stream-based-initialization)
+    - [Tasks:](#tasks-14)
+    - [Questions:](#questions-9)
+  - [Exercise 16: Stream-Sliced Vector Addition](#exercise-16-stream-sliced-vector-addition)
+    - [Tasks:](#tasks-15)
+    - [Questions:](#questions-10)
+  - [Exercise 17: Advanced Stream Synchronization](#exercise-17-advanced-stream-synchronization)
+    - [Tasks:](#tasks-16)
+    - [Questions:](#questions-11)
+  - [Exercise 18: Multi-Stage Pipeline with Streams](#exercise-18-multi-stage-pipeline-with-streams)
+    - [Tasks:](#tasks-17)
+    - [Questions:](#questions-12)
+  - [Exercise 19: Optimizing Block Count Based on SM Count](#exercise-19-optimizing-block-count-based-on-sm-count)
+    - [Tasks:](#tasks-18)
+    - [Questions:](#questions-13)
+  - [Exercise 20: Understanding Unified Memory Behavior](#exercise-20-understanding-unified-memory-behavior)
+    - [Tasks:](#tasks-19)
+    - [Questions:](#questions-14)
+  - [Exercise 21: Memory Prefetching Optimization](#exercise-21-memory-prefetching-optimization)
+    - [Tasks:](#tasks-20)
+    - [Questions:](#questions-15)
 
 ## Exercise 1: Hello World from the GPU
 
@@ -1021,3 +1062,195 @@ Create a new file `pipeline.cu` that implements a multi-stage data processing pi
 - What is the optimal number of batches for your GPU?
 - What factors limit the performance of the pipelined approach?
 
+## Exercise 19: Optimizing Block Count Based on SM Count
+
+**File to use:** [vector-add-SM-blocks.cu](examples/13-vector-add-sm-blocks/vector-add-SM-blocks.cu)
+
+This exercise will help you understand how to optimize CUDA execution configuration based on the GPU's streaming multiprocessor (SM) count.
+
+### Tasks:
+
+1. **Fix the bug in the block count calculation:**
+   - The current code has a bug in the `numberOfBlocks` calculation. It's trying to use `numberOfBlocks` to calculate itself!
+   - Add code to query the number of SMs:
+   ```c
+   cudaGetDevice(&deviceId);
+   cudaDeviceGetAttribute(&numberOfSMs, cudaDevAttrMultiProcessorCount, deviceId);
+   printf("Device ID: %d\tNumber of SMs: %d\n", deviceId, numberOfSMs);
+   ```
+   - Fix the calculation to make `numberOfBlocks` a multiple of the SM count:
+   ```c
+   numberOfBlocks = 32 * numberOfSMs; // Use 32 blocks per SM
+   ```
+
+2. **Add performance timing:**
+   - Add CUDA event timing to measure kernel execution time:
+   ```c
+   cudaEvent_t start, stop;
+   cudaEventCreate(&start);
+   cudaEventCreate(&stop);
+   
+   cudaEventRecord(start);
+   addArraysInto<<<numberOfBlocks, threadsPerBlock>>>(c, a, b, N);
+   cudaEventRecord(stop);
+   
+   cudaEventSynchronize(stop);
+   float milliseconds = 0;
+   cudaEventElapsedTime(&milliseconds, start, stop);
+   printf("Kernel execution time: %f ms\n", milliseconds);
+   ```
+
+3. **Experiment with different multipliers:**
+   - Try different multipliers for the SM count: 1, 2, 4, 8, 16, 32, 64
+   - Record the execution time for each configuration
+   - Create a table or graph of your results
+
+4. **Experiment with different thread counts:**
+   - Try different thread counts per block: 128, 256, 512, 1024
+   - For each thread count, use your best SM multiplier from the previous step
+   - Record execution times and compare
+
+### Questions:
+- Why is it beneficial to use a number of blocks that's a multiple of the SM count?
+- What happens to performance if you use too few blocks? Too many?
+- Is there an optimal threads-per-block size for your GPU? Why?
+
+## Exercise 20: Understanding Unified Memory Behavior
+
+**File to use:** [page-faults.cu](examples/14-unified-memory-page-faults/page-faults.cu)
+
+This exercise will help you understand how Unified Memory behaves under different access patterns and how page faulting affects performance.
+
+### Tasks:
+
+1. **Experiment with GPU-only access:**
+   - Complete the code to run only the GPU kernel:
+   ```c
+   // Experiment 1: GPU-only access
+   cudaEvent_t start, stop;
+   cudaEventCreate(&start);
+   cudaEventCreate(&stop);
+   
+   cudaEventRecord(start);
+   deviceKernel<<<256, 256>>>(a, N);
+   cudaDeviceSynchronize();
+   cudaEventRecord(stop);
+   
+   cudaEventSynchronize(stop);
+   float milliseconds = 0;
+   cudaEventElapsedTime(&milliseconds, start, stop);
+   printf("GPU-only access time: %f ms\n", milliseconds);
+   ```
+   - Profile this with `nsys profile --stats=true ./my_program`
+   - Analyze the memory operations in the output
+
+2. **Experiment with CPU-only access:**
+   - Reset the code and run only the CPU function:
+   ```c
+   // Experiment 2: CPU-only access
+   cudaEvent_t start, stop;
+   cudaEventCreate(&start);
+   cudaEventCreate(&stop);
+   
+   cudaEventRecord(start);
+   hostFunction(a, N);
+   cudaEventRecord(stop);
+   
+   cudaEventSynchronize(stop);
+   float milliseconds = 0;
+   cudaEventElapsedTime(&milliseconds, start, stop);
+   printf("CPU-only access time: %f ms\n", milliseconds);
+   ```
+   - Profile this and analyze the memory operations
+
+3. **Experiment with GPU-then-CPU access:**
+   - Run the GPU kernel followed by the CPU function:
+   ```c
+   // Experiment 3: GPU then CPU access
+   deviceKernel<<<256, 256>>>(a, N);
+   cudaDeviceSynchronize();
+   hostFunction(a, N);
+   ```
+   - Profile and analyze memory transfers
+
+4. **Experiment with CPU-then-GPU access:**
+   - Run the CPU function followed by the GPU kernel:
+   ```c
+   // Experiment 4: CPU then GPU access
+   hostFunction(a, N);
+   deviceKernel<<<256, 256>>>(a, N);
+   cudaDeviceSynchronize();
+   ```
+   - Profile and analyze memory transfers
+
+5. **Analyze and document your findings:**
+   - For each experiment, record:
+     - Number of page faults
+     - Direction of memory transfers (HtoD or DtoH)
+     - Total memory transferred
+     - Execution time
+
+### Questions:
+- When do page faults occur in each scenario?
+- How does the initial accessor of memory affect subsequent memory transfers?
+- What pattern of memory access would be most efficient for a real application?
+- How does the size of the data affect the page fault behavior?
+
+## Exercise 21: Memory Prefetching Optimization
+
+**File to use:** [vector-add-prefetch.cu](examples/15-unified-memory-prefetch/vector-add-prefetch.cu)
+
+This exercise will show you how to use asynchronous memory prefetching to optimize performance by reducing page faults.
+
+### Tasks:
+
+1. **Add memory prefetching to GPU:**
+   - Add code to prefetch arrays to the GPU before kernel execution:
+   ```c
+   // Prefetch arrays to the GPU
+   cudaMemPrefetchAsync(a, size, deviceId);
+   cudaMemPrefetchAsync(b, size, deviceId);
+   cudaMemPrefetchAsync(c, size, deviceId);
+   ```
+   - Add this code after initialization but before kernel launch
+   - Profile and measure the performance impact
+
+2. **Add memory prefetching back to CPU:**
+   - Add code to prefetch the result array back to the CPU before verification:
+   ```c
+   // Prefetch result back to CPU for verification
+   cudaMemPrefetchAsync(c, size, cudaCpuDeviceId);
+   ```
+   - Add this after kernel execution but before verification
+   - Profile and measure the impact
+
+3. **Add comprehensive timing:**
+   - Add timing for each phase of execution:
+     - Memory allocation
+     - Initialization
+     - Prefetching to GPU
+     - Kernel execution
+     - Prefetching to CPU
+     - Verification
+   - Record and compare times for each phase
+
+4. **Experiment with partial prefetching:**
+   - Create a version that only prefetches part of each array
+   - For example, prefetch the first half of each array:
+   ```c
+   cudaMemPrefetchAsync(a, size/2, deviceId);
+   ```
+   - Compare performance with full prefetching
+
+5. **Try different array sizes:**
+   - Modify the code to test with different array sizes:
+     - N = 2<<20 (small)
+     - N = 2<<24 (medium - current)
+     - N = 2<<28 (large)
+   - For each size, compare performance with and without prefetching
+
+### Questions:
+- At what data size does prefetching provide the most significant benefit?
+- Which operation benefits most from prefetching?
+- How does partial prefetching affect performance compared to full prefetching?
+- How would you decide whether to use prefetching in a real application?

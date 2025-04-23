@@ -12,6 +12,7 @@
 - [CUDA C++ Best Practices Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/contents.html)
 - [CUDA Streams Best Practices](https://developer.nvidia.com/blog/gpu-pro-tip-cuda-7-streams-simplify-concurrency/)
 - [CUDA Runtime API Documentation](https://docs.nvidia.com/cuda/cuda-runtime-api/index.html)
+- [Unified Memory in CUDA](https://developer.nvidia.com/blog/unified-memory-in-cuda-6/)
 
 ## Laboratory exercises - [Exercises.md](Exercises.md)
 
