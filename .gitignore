@@ -1,3 +1,5 @@
 *.bin
 *.nsys-rep
 *.sqlite
+
+*_solution.cu

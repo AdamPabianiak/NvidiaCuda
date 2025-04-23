@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 
 inline cudaError_t checkCuda(cudaError_t result)
 {

@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <unistd.h>
 
 __global__ void printNumber(int number)
 {
@@ -12,9 +11,8 @@ int main()
   {
     cudaStream_t stream;
     cudaStreamCreate(&stream);
-    printNumber<<<1, 1, 0, stream>>>(i);
+    printNumber<<<2, 2, 0, stream>>>(i);
     cudaStreamDestroy(stream);
   }
   cudaDeviceSynchronize();
 }
-
