@@ -3,3 +3,5 @@
 *.sqlite
 
 *_solution.cu
+
+templates/cuda-webcam-filter/build
