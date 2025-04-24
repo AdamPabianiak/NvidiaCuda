@@ -36,12 +36,20 @@ Requires a CUDA-enabled GPU.
 - plog
 - Google Test
 
+## Linux
+
+```
+sudo apt-get update
+sudo apt-get install libgtk-3-dev pkg-config
+```
+
 ### External dependencies
 
 The application has the following external dependencies that can be updated using git subtree
 - plog - `git subtree pull --prefix templates/cuda-webcam-filter/external/plog https://github.com/SergiusTheBest/plog.git tags/1.1.10 --squash`
 - cxxopts - `git subtree pull --prefix templates/cuda-webcam-filter/external/cxxopts https://github.com/jarro2783/cxxopts.git tags/v3.2.0 --squash`
 - gtest - `git subtree pull --prefix templates/cuda-webcam-filter/external/gtest https://github.com/google/googletest.git tags/v1.16.0 --squash`
+- opencv - `git subtree pull --prefix templates/cuda-webcam-filter/external/opencv https://github.com/opencv/opencv.git tags/4.11.0 --squash`
 
 ## Build
 
@@ -49,7 +57,7 @@ The application has the following external dependencies that can be updated usin
 ```bash
 mkdir build && cd build
 cmake ..
-make
+make -j $(nproc)
 ```
 
 ### Build on Windows
