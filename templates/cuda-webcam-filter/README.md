@@ -31,15 +31,29 @@ Requires a CUDA-enabled GPU.
 
 ## Dependencies
 - OpenCV (>= 4.5.0)
-- CUDA Toolkit (>= 11.0)
+- CUDA Toolkit (>= 12.0)
 - cxxopts
 - plog
 - Google Test
+- CMake (>= 3.28)
 
 ## Linux
 
+### CMake Installation
+```bash
+# For Ubuntu/Debian
+sudo apt-get update
+sudo apt-get install cmake=3.28.*
+# If not available in default repositories, add Kitware's repository:
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+sudo apt-get update
+sudo apt-get install cmake=3.28.*
+```
+
 ```
 sudo apt-get update
+sudo apt-get install gcc-12 g++-12
 sudo apt-get install libgtk-3-dev pkg-config
 ```
 
@@ -54,11 +68,13 @@ The application has the following external dependencies that can be updated usin
 
 ## Build
 
+TODO: Adjust the CUDA architecture in CMakeLists.txt (CMAKE_CUDA_ARCHITECTURES)
+
 ### Build on Linux
 ```bash
 mkdir build && cd build
 cmake ..
-make -j $(nproc)
+cmake --build . -j $(nproc)
 ```
 
 ### Build on Windows

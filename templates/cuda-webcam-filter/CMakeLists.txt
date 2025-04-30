@@ -1,10 +1,73 @@
 cmake_minimum_required(VERSION 3.27) # Requires 25 or above to have CUDA20 standard flag
+
+if(NOT DEFINED CMAKE_C_COMPILER AND NOT DEFINED CMAKE_CXX_COMPILER)
+    set(COMPILER_CACHE_FILE "${CMAKE_BINARY_DIR}/compiler_settings.cmake")
+
+    if(WIN32)
+        # Windows compiler detection
+        find_program(MSVC_COMPILER cl)
+        if(MSVC_COMPILER)
+            file(WRITE "${COMPILER_CACHE_FILE}"
+                "set(CMAKE_C_COMPILER \"${MSVC_COMPILER}\" CACHE FILEPATH \"C compiler\" FORCE)\n"
+                "set(CMAKE_CXX_COMPILER \"${MSVC_COMPILER}\" CACHE FILEPATH \"C++ compiler\" FORCE)\n"
+            )
+            set(CMAKE_C_COMPILER "${MSVC_COMPILER}" CACHE FILEPATH "C compiler" FORCE)
+            set(CMAKE_CXX_COMPILER "${MSVC_COMPILER}" CACHE FILEPATH "C++ compiler" FORCE)
+        endif()
+    else()
+        # Only try to detect compilers if they haven't been specified
+        find_program(GCC_12_COMPILER gcc-12)
+        find_program(GXX_12_COMPILER g++-12)
+        
+        if(GCC_12_COMPILER AND GXX_12_COMPILER)
+            # Generate a cache initialization file
+            file(WRITE "${COMPILER_CACHE_FILE}"
+                "set(CMAKE_C_COMPILER \"${GCC_12_COMPILER}\" CACHE FILEPATH \"C compiler\" FORCE)\n"
+                "set(CMAKE_CXX_COMPILER \"${GXX_12_COMPILER}\" CACHE FILEPATH \"C++ compiler\" FORCE)\n"
+                "set(CMAKE_CUDA_HOST_COMPILER \"${GXX_12_COMPILER}\" CACHE FILEPATH \"CUDA host compiler\" FORCE)\n"
+            )
+            
+            # Output message about using the file next time
+            message(STATUS "Created compiler settings cache file. For faster configuration, use:")
+            message(STATUS "  cmake -C ${COMPILER_CACHE_FILE} ..")
+            
+            # Apply the settings right now
+            set(CMAKE_C_COMPILER "${GCC_12_COMPILER}" CACHE FILEPATH "C compiler" FORCE)
+            set(CMAKE_CXX_COMPILER "${GXX_12_COMPILER}" CACHE FILEPATH "C++ compiler" FORCE)
+            # CUDA host compiler will be set after CUDA language is enabled
+        endif()
+    endif()
+endif()
+
 project(cuda-webcam-filter LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
+
+# Set build type to Release for better performance
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+
+# Enable parallel build
+if(WIN32)
+    # Windows: Use number of processors
+    set(CMAKE_BUILD_PARALLEL_LEVEL $ENV{NUMBER_OF_PROCESSORS})
+else()
+    # Linux: Use nproc command
+    execute_process(COMMAND nproc OUTPUT_VARIABLE NUM_CORES)
+    string(STRIP ${NUM_CORES} NUM_CORES)
+    set(CMAKE_BUILD_PARALLEL_LEVEL ${NUM_CORES})
+endif()
+
+# Set job pools for parallel compilation and linking
+set(CMAKE_JOB_POOL_COMPILE "compile")
+set(CMAKE_JOB_POOL_LINK "link")
+if(WIN32)
+    set(CMAKE_JOB_POOLS "compile=$ENV{NUMBER_OF_PROCESSORS};link=2")
+else()
+    set(CMAKE_JOB_POOLS "compile=${NUM_CORES};link=2")
+endif()
 
 # Project version
 set(PROJECT_VERSION "0.1.0")
@@ -54,16 +117,11 @@ if(WIN32)
         # Try to find CUDA in standard locations
         find_path(CUDA_INCLUDE_DIRS cuda_runtime.h
             HINTS 
-            "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/include"
-            "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.7/include"
-            "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/include"
-            "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.5/include"
             "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.4/include"
             "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.3/include"
             "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.2/include"
             "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.1/include"
             "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.0/include"
-            "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8/include"
             PATH_SUFFIXES cuda
         )
         if(CUDA_INCLUDE_DIRS)
@@ -80,7 +138,19 @@ else()
     # Linux-specific settings
     message(STATUS "Configuring build for Linux")
     set(WITH_GTK ON CACHE BOOL "")
-    set(WITH_GTK_2_X OFF CACHE BOOL "") # Use GTK3 by default on Linux
+    set(WITH_GTK_2_X ON CACHE BOOL "") # Use GTK3 by default on Linux
+       
+    if(GCC_12_COMPILER AND GXX_12_COMPILER)
+        message(STATUS "Using GCC 12: ${GCC_12_COMPILER}")
+        message(STATUS "Using G++ 12: ${GXX_12_COMPILER}")
+    
+        # Only set CUDA host compiler here if CUDA is enabled separately
+        if(CUDA_SUPPORT)
+            set(CMAKE_CUDA_HOST_COMPILER "${GXX_12_COMPILER}" CACHE FILEPATH "CUDA host compiler" FORCE)
+        endif()
+    else()
+        message(WARNING "GCC 12 not found. Please install it with: sudo apt-get install gcc-12 g++-12")
+    endif()
     
     # Linux-specific CUDA paths
     if(CUDA_SUPPORT)
@@ -166,7 +236,7 @@ if(CUDA_SUPPORT)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --std=c++20")
     
     # Target various CUDA architectures
-    set(CMAKE_CUDA_ARCHITECTURES 89)  # RTX 4060 (Ada Lovelace) - Adjust to target specific GPUs!!!
+    set(CMAKE_CUDA_ARCHITECTURES 89)  # RTX 4060 (Ada Lovelace) - TODO: Adjust to target specific GPUs!!!
     
     if(CUDA_DEBUG)
         message(STATUS "CUDA Debug is ON")
