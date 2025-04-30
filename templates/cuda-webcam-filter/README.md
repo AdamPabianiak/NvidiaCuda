@@ -105,8 +105,8 @@ cuda-webcam-filter/
 │   │   ├── convolution_kernels.cu  # CUDA implementation
 │   │   └── kernels.h        # Kernel interfaces
 │   ├── utils/
-│   │   ├── webcam_handler.cpp  # Camera input/output handling
-│   │   ├── webcam_handler.h
+│   │   ├── input_handler.cpp  # Input/output handling
+│   │   ├── input_handler.h
 │   │   ├── filter_utils.cpp    # Filter creation utilities
 │   │   ├── filter_utils.h
 │   │   └── version.h.in        # Version template

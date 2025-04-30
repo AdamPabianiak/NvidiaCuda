@@ -94,7 +94,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external/cxxopts/include)
 set(OPENCV_EXTRA_MODULES_PATH "${CMAKE_SOURCE_DIR}/external/opencv_contrib/modules" CACHE PATH "Location of opencv_contrib modules")
 
 # Common OpenCV configuration options
-set(WITH_OPENGL ON CACHE BOOL "")
+set(WITH_OPENGL OFF CACHE BOOL "")
 set(WITH_VTK OFF CACHE BOOL "")
 set(WITH_QT OFF CACHE BOOL "")
 set(BUILD_opencv_python2 OFF CACHE BOOL "")
