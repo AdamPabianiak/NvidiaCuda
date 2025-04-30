@@ -50,6 +50,7 @@ The application has the following external dependencies that can be updated usin
 - cxxopts - `git subtree pull --prefix templates/cuda-webcam-filter/external/cxxopts https://github.com/jarro2783/cxxopts.git tags/v3.2.0 --squash`
 - gtest - `git subtree pull --prefix templates/cuda-webcam-filter/external/gtest https://github.com/google/googletest.git tags/v1.16.0 --squash`
 - opencv - `git subtree pull --prefix templates/cuda-webcam-filter/external/opencv https://github.com/opencv/opencv.git tags/4.11.0 --squash`
+- opencv contrib - `git subtree pull --prefix templates/cuda-webcam-filter/external/opencv_contrib https://github.com/opencv/opencv_contrib.git tags/4.11.0 --squash`
 
 ## Build
 
