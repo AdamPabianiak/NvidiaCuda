@@ -138,7 +138,7 @@ else()
     # Linux-specific settings
     message(STATUS "Configuring build for Linux")
     set(WITH_GTK ON CACHE BOOL "")
-    set(WITH_GTK_2_X ON CACHE BOOL "") # Use GTK3 by default on Linux
+    set(WITH_GTK_2_X OFF CACHE BOOL "") # Use GTK3 by default on Linux
        
     if(GCC_12_COMPILER AND GXX_12_COMPILER)
         message(STATUS "Using GCC 12: ${GCC_12_COMPILER}")
