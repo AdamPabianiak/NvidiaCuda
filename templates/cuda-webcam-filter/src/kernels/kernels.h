@@ -6,6 +6,7 @@ namespace cuda_filter
 {
 
     void applyFilterGPU(const cv::Mat &input, cv::Mat &output, const cv::Mat &kernel);
+    void applyFilterCPU(const cv::Mat &input, cv::Mat &output, const cv::Mat &kernel);
 
     namespace cuda
     {

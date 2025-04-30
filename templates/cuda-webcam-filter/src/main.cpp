@@ -3,7 +3,7 @@
 #include <plog/Initializers/RollingFileInitializer.h>
 #include <plog/Log.h>
 #include "input_args_parser/input_args_parser.h"
-#include "utils/webcam_handler.h"
+#include "utils/input_handler.h"
 #include "utils/filter_utils.h"
 #include "kernels/kernels.h"
 
@@ -17,11 +17,11 @@ int main(int argc, char **argv)
     cuda_filter::InputArgsParser parser(argc, argv);
     cuda_filter::FilterOptions options = parser.parseArgs();
 
-    // Initialize webcam
-    cuda_filter::WebcamHandler webcam(options.deviceId);
-    if (!webcam.isOpened())
+    // Initialize input handler
+    cuda_filter::InputHandler inputHandler(options);
+    if (!inputHandler.isOpened())
     {
-        PLOG_ERROR << "Failed to open webcam";
+        PLOG_ERROR << "Failed to initialize input source";
         return -1;
     }
 
@@ -34,30 +34,72 @@ int main(int argc, char **argv)
               << ", Kernel size: " << options.kernelSize
               << ", Intensity: " << options.intensity;
 
-    cv::Mat frame, filtered;
+    cv::Mat frame, filteredCPU, filteredGPU;
+    double fpsCPU = 0.0, fpsGPU = 0.0;
+    int frameCountCPU = 0, frameCountGPU = 0;
+    double startTimeCPU = static_cast<double>(cv::getTickCount());
+    double startTimeGPU = static_cast<double>(cv::getTickCount());
 
     PLOG_INFO << "Press 'ESC' to exit";
 
     while (true)
     {
         // Capture frame
-        if (!webcam.readFrame(frame))
+        if (!inputHandler.readFrame(frame))
         {
             PLOG_ERROR << "Failed to read frame";
             break;
         }
 
-        // Apply filter using GPU
-        cuda_filter::applyFilterGPU(frame, filtered, kernel);
+        // Apply filter using CPU
+        const double cpuStart = static_cast<double>(cv::getTickCount());
+        cuda_filter::applyFilterCPU(frame, filteredCPU, kernel);
+        const double cpuEnd = static_cast<double>(cv::getTickCount());
+        const double cpuTime = (cpuEnd - cpuStart) / cv::getTickFrequency();
+        frameCountCPU++;
+        if ((cpuEnd - startTimeCPU) / cv::getTickFrequency() >= 1.0)
+        {
+            fpsCPU = frameCountCPU;
+            frameCountCPU = 0;
+            startTimeCPU = cpuEnd;
+        }
 
-        // Display results
+        // Apply filter using GPU
+        const double gpuStart = static_cast<double>(cv::getTickCount());
+        cuda_filter::applyFilterGPU(frame, filteredGPU, kernel);
+        const double gpuEnd = static_cast<double>(cv::getTickCount());
+        const double gpuTime = (gpuEnd - gpuStart) / cv::getTickFrequency();
+        frameCountGPU++;
+        if ((gpuEnd - startTimeGPU) / cv::getTickFrequency() >= 1.0)
+        {
+            fpsGPU = frameCountGPU;
+            frameCountGPU = 0;
+            startTimeGPU = gpuEnd;
+        }
+
+        // Add FPS and processing time text to the frames
+        std::string cpuText = "CPU FPS: " + std::to_string(static_cast<int>(fpsCPU)) +
+                              " Time: " + std::to_string(cpuTime * 1000).substr(0, 4) + "ms";
+        std::string gpuText = "GPU FPS: " + std::to_string(static_cast<int>(fpsGPU)) +
+                              " Time: " + std::to_string(gpuTime * 1000).substr(0, 4) + "ms";
+
+        cv::putText(filteredCPU, cpuText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
+        cv::putText(filteredGPU, gpuText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
+
+        // Create a combined image showing both results
+        cv::Mat combined;
+        cv::hconcat(filteredCPU, filteredGPU, combined);
+        cv::putText(combined, "CPU Version", cv::Point(10, combined.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
+        cv::putText(combined, "GPU Version", cv::Point(combined.cols / 2 + 10, combined.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
+
+        // Display the combined result
         if (options.preview)
         {
-            webcam.displaySideBySide(frame, filtered);
+            inputHandler.displaySideBySide(frame, combined);
         }
         else
         {
-            webcam.displayFrame(filtered);
+            inputHandler.displayFrame(combined);
         }
 
         // Exit on ESC key

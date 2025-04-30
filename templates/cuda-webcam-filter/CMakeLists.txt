@@ -23,7 +23,7 @@ option(RUN_FUNCTIONAL_TESTS "Enable running functional tests" OFF)
 # Configure OpenCV build options before adding the subdirectory
 set(WITH_OPENGL ON CACHE BOOL "")
 set(WITH_GTK ON CACHE BOOL "")  # Enable GTK support
-set(WITH_GTK_2_X ON CACHE BOOL "")  # Use GTK3 instead of GTK2
+set(WITH_GTK_2_X ON CACHE BOOL "")  # Use GTK2
 set(WITH_VTK OFF CACHE BOOL "")
 set(WITH_QT OFF CACHE BOOL "")
 set(BUILD_opencv_python2 OFF CACHE BOOL "")
@@ -113,7 +113,7 @@ endif()
 # Define source files
 set(SOURCES
     ${CMAKE_SOURCE_DIR}/src/main.cpp
-    ${CMAKE_SOURCE_DIR}/src/utils/webcam_handler.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/input_handler.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/filter_utils.cpp
     ${CMAKE_SOURCE_DIR}/src/input_args_parser/input_args_parser.cpp
 )

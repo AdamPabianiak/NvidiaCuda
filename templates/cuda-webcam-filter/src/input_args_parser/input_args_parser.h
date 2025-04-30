@@ -6,8 +6,26 @@
 namespace cuda_filter
 {
 
+    enum class InputSource
+    {
+        WEBCAM,
+        IMAGE,
+        VIDEO,
+        SYNTHETIC
+    };
+
+    enum class SyntheticPattern
+    {
+        CHECKERBOARD,
+        GRADIENT,
+        NOISE
+    };
+
     struct FilterOptions
     {
+        InputSource inputSource;
+        std::string inputPath;
+        SyntheticPattern syntheticPattern;
         int deviceId;
         std::string filterType;
         int kernelSize;
@@ -28,6 +46,8 @@ namespace cuda_filter
         char **m_argv;
 
         void setupOptions(cxxopts::Options &options);
+        InputSource stringToInputSource(const std::string &str);
+        SyntheticPattern stringToSyntheticPattern(const std::string &str);
     };
 
 } // namespace cuda_filter
