@@ -94,7 +94,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external/cxxopts/include)
 set(OPENCV_EXTRA_MODULES_PATH "${CMAKE_SOURCE_DIR}/external/opencv_contrib/modules" CACHE PATH "Location of opencv_contrib modules")
 
 # Common OpenCV configuration options
-set(WITH_OPENGL OFF CACHE BOOL "")
+set(WITH_OPENGL ON CACHE BOOL "")
 set(WITH_VTK OFF CACHE BOOL "")
 set(WITH_QT OFF CACHE BOOL "")
 set(BUILD_opencv_python2 OFF CACHE BOOL "")
@@ -154,11 +154,8 @@ else()
     
     # Linux-specific CUDA paths
     if(CUDA_SUPPORT)
-        find_path(CUDA_INCLUDE_DIRS cuda_runtime.h
-            HINTS 
-            /usr/local/cuda/include
-            /usr/include
-            /opt/cuda/include
+    find_path(CUDA_INCLUDE_DIRS cuda_runtime.h
+            HINTS /usr/local/cuda/include /usr/include
             PATH_SUFFIXES cuda
         )
         if(CUDA_INCLUDE_DIRS)
@@ -170,6 +167,36 @@ endif()
 
 # CUDA support for OpenCV
 if(CUDA_SUPPORT)
+    enable_language(CUDA)
+    message(STATUS "CMAKE_CUDA_COMPILER = ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "CMAKE_CUDA_COMPILER_ID = ${CMAKE_CUDA_COMPILER_ID}")
+    message(STATUS "CMAKE_CUDA_COMPILER_VERSION = ${CMAKE_CUDA_COMPILER_VERSION}")
+
+    # Include CUDA toolkit directories
+    if(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES)
+        include_directories("${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
+    endif()
+
+    set(CMAKE_CUDA_STANDARD 20)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --std=c++20")
+
+    if(CUDA_DEBUG)
+        message(STATUS "CUDA Debug is ON")
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g -G") # enable cuda-gdb
+    endif()
+
+    message(STATUS "CMAKE_CUDA_FLAGS = ${CMAKE_CUDA_FLAGS}")
+
+    # Target a wide range of architectures for better compatibility
+    # This covers most GPUs from Pascal (GTX 10 series) to Ada Lovelace (RTX 40 series)
+    set(CMAKE_CUDA_ARCHITECTURES "60;61;70;75;80;86;89")
+
+    # Explicitly set the CUDA architectures for OpenCV to avoid auto-detection
+    # Use only architectures that your GPU supports
+    set(CUDA_ARCH_BIN "6.0 6.1 7.0 7.5 8.0 8.6 8.9" CACHE STRING "CUDA architectures" FORCE)
+    set(CUDA_ARCH_PTX "" CACHE STRING "CUDA PTX architectures" FORCE)
+
     set(WITH_CUDA ON CACHE BOOL "")
     set(WITH_CUBLAS ON CACHE BOOL "")
     set(CUDA_FAST_MATH ON CACHE BOOL "")
@@ -180,9 +207,14 @@ if(CUDA_SUPPORT)
     
     # Build cudev module that is required for CUDA support
     set(BUILD_opencv_cudev ON CACHE BOOL "")
+
+    set(WITH_NVCUVENC OFF CACHE BOOL "")
+    set(WITH_NVCUVID OFF CACHE BOOL "")
 else()
     set(WITH_CUDA OFF CACHE BOOL "")
     set(WITH_CUBLAS OFF CACHE BOOL "")
+    set(WITH_NVCUVENC OFF CACHE BOOL "")
+    set(WITH_NVCUVID OFF CACHE BOOL "")
 endif()
 
 # Add OpenCV subdirectory
@@ -217,33 +249,6 @@ if(CUDA_SUPPORT)
         ${CMAKE_BINARY_DIR}/opencv_modules
         ${CMAKE_BINARY_DIR}/external/opencv/modules # For generated headers
     )
-endif()
-
-# CUDA configuration
-if(CUDA_SUPPORT)
-    enable_language(CUDA)
-    message(STATUS "CMAKE_CUDA_COMPILER = ${CMAKE_CUDA_COMPILER}")
-    message(STATUS "CMAKE_CUDA_COMPILER_ID = ${CMAKE_CUDA_COMPILER_ID}")
-    message(STATUS "CMAKE_CUDA_COMPILER_VERSION = ${CMAKE_CUDA_COMPILER_VERSION}")
-
-    # Include CUDA toolkit directories
-    if(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES)
-        include_directories("${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}")
-    endif()
-    
-    set(CMAKE_CUDA_STANDARD 20)
-    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --std=c++20")
-    
-    # Target various CUDA architectures
-    set(CMAKE_CUDA_ARCHITECTURES 89)  # RTX 4060 (Ada Lovelace) - TODO: Adjust to target specific GPUs!!!
-    
-    if(CUDA_DEBUG)
-        message(STATUS "CUDA Debug is ON")
-        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g -G") # enable cuda-gdb
-    endif()
-
-    message(STATUS "CMAKE_CUDA_FLAGS = ${CMAKE_CUDA_FLAGS}")
 endif()
 
 # Define source files
