@@ -49,26 +49,6 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 # Set build type to Release for better performance
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 
-# Enable parallel build
-if(WIN32)
-    # Windows: Use number of processors
-    set(CMAKE_BUILD_PARALLEL_LEVEL $ENV{NUMBER_OF_PROCESSORS})
-else()
-    # Linux: Use nproc command
-    execute_process(COMMAND nproc OUTPUT_VARIABLE NUM_CORES)
-    string(STRIP ${NUM_CORES} NUM_CORES)
-    set(CMAKE_BUILD_PARALLEL_LEVEL ${NUM_CORES})
-endif()
-
-# Set job pools for parallel compilation and linking
-set(CMAKE_JOB_POOL_COMPILE "compile")
-set(CMAKE_JOB_POOL_LINK "link")
-if(WIN32)
-    set(CMAKE_JOB_POOLS "compile=$ENV{NUMBER_OF_PROCESSORS};link=2")
-else()
-    set(CMAKE_JOB_POOLS "compile=${NUM_CORES};link=2")
-endif()
-
 # Project version
 set(PROJECT_VERSION "0.1.0")
 configure_file(
@@ -128,11 +108,6 @@ if(WIN32)
             include_directories(${CUDA_INCLUDE_DIRS})
             message(STATUS "Found CUDA includes: ${CUDA_INCLUDE_DIRS}")
         endif()
-    endif()
-    
-    # Use MSVS-specific settings if using Visual Studio
-    if(MSVC)
-        add_compile_options(/MP) # Enable parallel builds
     endif()
 else()
     # Linux-specific settings
