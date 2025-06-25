@@ -1,0 +1,14 @@
+cd/teacher-clone/templates/cuda-webcam-filter/build
+del /Q CMakeCache.txt
+rmdir /S /Q CMakeFiles
+cmake ..
+cmake --build . --config Release --target cuda-webcam-filter -- /m
+cd/teacher-clone/templates/cuda-webcam-filter/build/bin/release
+
+cuda-webcam-filter.exe --input image --path ..\..\..\..\test.jpg --pipeline hdr --exposure 1.5 --gamma 2.2 --saturation 1.2 --preview
+
+
+
+
+
+cuda-webcam-filter.exe --input image --path ..\..\..\..\test.jpg --pipeline blur,sharpen,edge --transition none --preview

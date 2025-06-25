@@ -1,114 +1,77 @@
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
-#include <plog/Initializers/RollingFileInitializer.h>
 #include <plog/Log.h>
 #include "input_args_parser/input_args_parser.h"
 #include "utils/input_handler.h"
-#include "utils/filter_utils.h"
-#include "kernels/kernels.h"
+#include "utils/pipeline.h"
+#include "filter_utils.h"
+
+using namespace cuda_filter;
 
 int main(int argc, char **argv)
 {
-    // Initialize logger
-    plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
-    plog::init(plog::info, &consoleAppender);
+    plog::ConsoleAppender<plog::TxtFormatter> app;
+    plog::init(plog::info, &app);
 
-    // Parse command line arguments
-    cuda_filter::InputArgsParser parser(argc, argv);
-    cuda_filter::FilterOptions options = parser.parseArgs();
+    InputArgsParser parser(argc,argv);
+    FilterOptions opts = parser.parseArgs();
 
-    // Initialize input handler
-    cuda_filter::InputHandler inputHandler(options);
-    if (!inputHandler.isOpened())
-    {
-        PLOG_ERROR << "Failed to initialize input source";
-        return -1;
+    std::ostringstream ss;
+    for (int i=0;i<opts.pipelineFilters.size();++i){
+        if(i) ss<<","; ss<<opts.pipelineFilters[i];
     }
+    PLOG_INFO << "Pipeline: "<<ss.str()
+              <<" | Trans: "<<opts.transitionType
+              <<" | Prog: "<<opts.transitionProgress;
 
-    // Create filter kernel
-    cuda_filter::FilterType filterType = cuda_filter::FilterUtils::stringToFilterType(options.filterType);
-    cv::Mat kernel = cuda_filter::FilterUtils::createFilterKernel(
-        filterType, options.kernelSize, options.intensity);
+    InputHandler ih(opts);
+    if(!ih.isOpened()){ PLOG_ERROR<<"Cannot open input"; return -1; }
 
-    PLOG_INFO << "Filter: " << options.filterType
-              << ", Kernel size: " << options.kernelSize
-              << ", Intensity: " << options.intensity;
-
-    cv::Mat frame, filteredCPU, filteredGPU;
-    double fpsCPU = 0.0, fpsGPU = 0.0;
-    int frameCountCPU = 0, frameCountGPU = 0;
-    double startTimeCPU = static_cast<double>(cv::getTickCount());
-    double startTimeGPU = static_cast<double>(cv::getTickCount());
-
-    PLOG_INFO << "Press 'ESC' to exit";
-
-    while (true)
-    {
-        // Capture frame
-        if (!inputHandler.readFrame(frame))
-        {
-            PLOG_ERROR << "Failed to read frame";
-            break;
-        }
-
-        // Apply filter using CPU
-        const double cpuStart = static_cast<double>(cv::getTickCount());
-        cuda_filter::applyFilterCPU(frame, filteredCPU, kernel);
-        const double cpuEnd = static_cast<double>(cv::getTickCount());
-        const double cpuTime = (cpuEnd - cpuStart) / cv::getTickFrequency();
-        frameCountCPU++;
-        if ((cpuEnd - startTimeCPU) / cv::getTickFrequency() >= 1.0)
-        {
-            fpsCPU = frameCountCPU;
-            frameCountCPU = 0;
-            startTimeCPU = cpuEnd;
-        }
-
-        // Apply filter using GPU
-        const double gpuStart = static_cast<double>(cv::getTickCount());
-        cuda_filter::applyFilterGPU(frame, filteredGPU, kernel);
-        const double gpuEnd = static_cast<double>(cv::getTickCount());
-        const double gpuTime = (gpuEnd - gpuStart) / cv::getTickFrequency();
-        frameCountGPU++;
-        if ((gpuEnd - startTimeGPU) / cv::getTickFrequency() >= 1.0)
-        {
-            fpsGPU = frameCountGPU;
-            frameCountGPU = 0;
-            startTimeGPU = gpuEnd;
-        }
-
-        // Add FPS and processing time text to the frames
-        std::string cpuText = "CPU FPS: " + std::to_string(static_cast<int>(fpsCPU)) +
-                              " Time: " + std::to_string(cpuTime * 1000).substr(0, 4) + "ms";
-        std::string gpuText = "GPU FPS: " + std::to_string(static_cast<int>(fpsGPU)) +
-                              " Time: " + std::to_string(gpuTime * 1000).substr(0, 4) + "ms";
-
-        cv::putText(filteredCPU, cpuText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
-        cv::putText(filteredGPU, gpuText, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
-
-        // Create a combined image showing both results
-        cv::Mat combined;
-        cv::hconcat(filteredCPU, filteredGPU, combined);
-        cv::putText(combined, "CPU Version", cv::Point(10, combined.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
-        cv::putText(combined, "GPU Version", cv::Point(combined.cols / 2 + 10, combined.rows - 10), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(255, 255, 0), 2);
-
-        // Display the combined result
-        if (options.preview)
-        {
-            inputHandler.displaySideBySide(frame, combined);
-        }
-        else
-        {
-            inputHandler.displayFrame(combined);
-        }
-
-        // Exit on ESC key
-        if (cv::waitKey(1) == 27)
-        {
-            break;
+    // Build pipeline(s)
+    FilterPipeline pipe, A, B;
+    bool doWipe = opts.transitionType=="wipe" && opts.pipelineFilters.size()==2;
+    if(doWipe){
+        auto f1 = stringToFilterType(opts.pipelineFilters[0]);
+        A.addStage(std::make_shared<FilterStage>(f1,opts));
+        auto f2 = stringToFilterType(opts.pipelineFilters[1]);
+        B.addStage(std::make_shared<FilterStage>(f2,opts));
+    } else {
+        for(auto &n:opts.pipelineFilters){
+            auto ft = stringToFilterType(n);
+            pipe.addStage(std::make_shared<FilterStage>(ft,opts));
         }
     }
 
-    PLOG_INFO << "Application terminated";
+    cv::Mat frame, o1, o2, out;
+    PLOG_INFO<<"Press ESC to quit";
+
+    while(true){
+        if(!ih.readFrame(frame)) break;
+        double t0 = cv::getTickCount();
+
+        if(doWipe){
+            A.execute(frame,o1);
+            B.execute(frame,o2);
+            int split=int(frame.cols*opts.transitionProgress);
+            out = o1.clone();
+            o2(cv::Rect(split,0,frame.cols-split,frame.rows))
+              .copyTo(out(cv::Rect(split,0,frame.cols-split,frame.rows)));
+        } else {
+            pipe.execute(frame,out);
+        }
+
+        double t1=cv::getTickCount();
+        double ms=(t1-t0)/cv::getTickFrequency()*1000.0;
+        double fps=1000.0/ms;
+
+        std::string info = "FPS: "+std::to_string(int(fps))+" ms: "+std::to_string(ms).substr(0,5);
+        cv::putText(out,info,{10,30},cv::FONT_HERSHEY_SIMPLEX,0.7,{255,255,0},2);
+        if(opts.preview) ih.displaySideBySide(frame,out);
+        else ih.displayFrame(out);
+
+        if(cv::waitKey(1)==27) break;
+    }
+
+    PLOG_INFO<<"Done";
     return 0;
 }

@@ -164,11 +164,11 @@ if(CUDA_SUPPORT)
     message(STATUS "CMAKE_CUDA_FLAGS = ${CMAKE_CUDA_FLAGS}")
 
     # Target architecture
-    set(CMAKE_CUDA_ARCHITECTURES "61;70;75;80;86;89" CACHE STRING "CUDA architectures" FORCE)  # TODO: RTX 4060 (Ada Lovelace) - Adjust to target specific GPUs!!!
+    set(CMAKE_CUDA_ARCHITECTURES "Auto" CACHE STRING "CUDA architectures" FORCE)  # TODO: RTX 4060 (Ada Lovelace) - Adjust to target specific GPUs!!!
 
     # Explicitly set the CUDA architectures for OpenCV to avoid auto-detection
     # Use only architectures that your GPU supports
-    set(CUDA_ARCH_BIN "8.9" CACHE STRING "CUDA architectures" FORCE)  # TODO: RTX 4060 (Ada Lovelace) - Adjust to target specific GPUs!!!
+    set(CMAKE_CUDA_ARCHITECTURES "61;86" CACHE STRING "CUDA architectures" FORCE)  # TODO: RTX 4060 (Ada Lovelace) - Adjust to target specific GPUs!!!
     set(CUDA_ARCH_PTX "" CACHE STRING "CUDA PTX architectures" FORCE)
 
     set(WITH_CUDA ON CACHE BOOL "")
